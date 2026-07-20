@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Final Result</title>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+            margin: 0;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 40px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            background: #3b82f6;
+            color: white;
+        }
+
+        /* CENTER */
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 80px);
+        }
+
+        .card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 20px;
+            width: 420px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            color: #60a5fa;
+        }
+
+        .section {
+            margin-top: 25px;
+            text-align: left;
+        }
+
+        .low { color: #22c55e; }
+        .mid { color: #f59e0b; }
+        .high { color: #ef4444; }
+
+        ul {
+            padding-left: 18px;
+            line-height: 1.6;
+        }
+
+        /* 🔥 WARNING STYLE */
+        .warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <h2>🧠 Final Analysis</h2>
+    <button class="btn" onclick="window.location.href='http://127.0.0.1:8000/dashboard.html'">
+        🏠 Dashboard
+    </button>
+</div>
+
+<div class="container">
+    <div class="card">
+
+        <!-- RESULT -->
+        <h1>{{ risk }}%</h1>
+        <h3>{{ level }}</h3>
+
+        <!-- ⚠️ WARNING -->
+        {% if warning %}
+        <div class="warning">
+            {{ warning }}
+        </div>
+        {% endif %}
+
+        <!-- MODEL VALUES -->
+        <div class="section">
+            <p>🎤 Voice: {{ graph_values[0] }}</p>
+            <p>👃 Smell: {{ graph_values[1] }}</p>
+            <p>✍️ Handwriting: {{ graph_values[2] }}</p>
+        </div>
+
+        <!-- 🧠 INSTRUCTIONS -->
+        <div class="section">
+
+            {% if risk < 30 %}
+            <h3 class="low">✅ Low Risk – Recommended Routine</h3>
+            <ul>
+                <li>Maintain a healthy lifestyle and balanced diet</li>
+                <li>Exercise regularly (walking, yoga, light cardio)</li>
+                <li>Get proper sleep (7–8 hours daily)</li>
+                <li>Do mental activities (reading, puzzles)</li>
+                <li>Repeat test after 3–6 months</li>
+            </ul>
+
+            {% elif risk < 60 %}
+            <h3 class="mid">⚠️ Moderate Risk – Take Precautions</h3>
+            <ul>
+                <li>Consult a neurologist for early screening</li>
+                <li>Start daily exercise routine (balance + coordination)</li>
+                <li>Monitor symptoms like tremor, speech changes</li>
+                <li>Avoid stress and maintain a healthy diet</li>
+                <li>Repeat assessment every 1–2 months</li>
+            </ul>
+
+            {% else %}
+            <h3 class="high">🚨 High Risk – Immediate Attention Required</h3>
+            <ul>
+                <li>Consult a neurologist immediately</li>
+                <li>Undergo clinical diagnosis (MRI / neurological exam)</li>
+                <li>Start guided therapy (physiotherapy / speech therapy)</li>
+                <li>Ensure caregiver or family support</li>
+                <li>Follow strict medical supervision</li>
+            </ul>
+            {% endif %}
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

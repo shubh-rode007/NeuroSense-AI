@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smell Analysis - NeuroSence AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-h-screen; color: white; }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; }
+        .navbar { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border-b: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-field { background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); transition: all 0.3s; }
+        .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        .custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 1000; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar fixed top-0 left-0 right-0 z-50 p-4">
+    <div class="container mx-auto flex justify-between items-center px-4">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span class="text-white font-bold text-sm">N</span>
+            </div>
+            <span class="font-bold text-lg tracking-tight">NeuroSence <span class="text-blue-400">AI</span></span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition text-sm flex items-center gap-2" onclick="showSequence()">
+                <i class="fas fa-list-ol text-blue-400"></i> View Sequence
+            </button>
+            <a href="http://127.0.0.1:8000/dashboard.html" class="px-5 py-2 border border-white/20 rounded-xl hover:bg-white/10 transition text-sm flex items-center gap-2">
+                <i class="fas fa-th-large"></i> Go Dashboard
+            </a>
+        </div>
+    </div>
+</nav>
+
+<main id="instructionPhase" class="container mx-auto pt-28 pb-12 px-6 max-w-4xl">
+    <div class="glass-card p-8 space-y-8 shadow-2xl border border-white/10">
+        <div class="text-center max-w-2xl mx-auto">
+            <div class="text-6xl mb-4 animate-bounce">👃</div>
+            <h1 class="text-4xl font-black tracking-tight text-white mb-4">
+                Olfactory Smell Test Assessment
+            </h1>
+            <p class="text-gray-300 text-sm leading-relaxed">
+                Degraded smell recognition (known as <strong>Anosmia</strong> or <strong>Hyposmia</strong>) stands as one of the primary prodromal markers of early Parkinson's Disease progression. This diagnostic test checks your scent recognition score against an ensemble medical dataset to identify subtle neurological markers up to <strong>5 to 10 years</strong> before motor issues arise.
+            </p>
+        </div>
+
+        <hr class="border-white/10">
+
+        <div class="space-y-4">
+            <h2 class="text-xl font-bold text-blue-400 flex items-center gap-2">
+                <i class="fas fa-info-circle"></i> Instructions & Assessment Steps:
+            </h2>
+            <div class="grid md:grid-cols-2 gap-4 text-sm text-gray-300">
+                <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex gap-3">
+                    <span class="font-bold text-blue-400">01.</span>
+                    <p>Enter your baseline demographic age parameter to calibrate dataset matching structures.</p>
+                </div>
+                <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex gap-3">
+                    <span class="font-bold text-blue-400">02.</span>
+                    <p>You will evaluate a total sequence of 20 successive multiple-choice sensory cards.</p>
+                </div>
+                <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex gap-3">
+                    <span class="font-bold text-blue-400">03.</span>
+                    <p>Carefully analyze each smell prompt item and click the element that matches your perception.</p>
+                </div>
+                <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex gap-3">
+                    <span class="font-bold text-blue-400">04.</span>
+                    <p>Maintain consistent pacing. Your final profile score updates automatically on your portal dashboard upon submission.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-4 text-center">
+            <button onclick="goToTestScreen()" class="px-10 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl font-bold text-white text-lg shadow-xl shadow-blue-500/10 hover:shadow-blue-500/20 transition transform hover:-translate-y-0.5 inline-flex items-center gap-3">
+                Proceed to Take Test <i class="fas fa-chevron-right text-sm"></i>
+            </button>
+        </div>
+    </div>
+</main>
+
+<main id="testPhase" class="container mx-auto pt-28 pb-12 px-6 max-w-md" style="display: none;">
+    <div class="glass-card p-6 shadow-xl border border-blue-500/20 min-h-[340px] flex flex-col justify-center">
+        
+        <div id="ageScreen" class="text-center space-y-5">
+            <div class="text-5xl">🎂</div>
+            <h3 class="text-xl font-bold text-white">Enter Your Age</h3>
+            <p class="text-gray-400 text-xs px-4">Calibrating population analytics based on your target aging demographic metrics.</p>
+            <div>
+                <input type="number" id="ageInput" class="input-field px-4 py-3 text-center rounded-xl text-white font-mono font-bold text-lg w-32" placeholder="45">
+            </div>
+            <button class="w-full py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl font-bold text-white shadow-lg transition" onclick="startTest()">
+                Start Test Sequence
+            </button>
+        </div>
+
+        <div id="testScreen" style="display:none;" class="space-y-5">
+            <div class="text-center">
+                <h3 id="questionText" class="text-xl font-black text-white tracking-wide">Evaluating...</h3>
+                <div class="mt-2">
+                    <span id="progress" class="inline-block px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono text-xs font-bold rounded-full"></span>
+                </div>
+            </div>
+            
+            <hr class="border-white/5">
+            
+            <div id="options" class="flex flex-col gap-2.5 max-h-[280px] overflow-y-auto pr-1"></div>
+        </div>
+
+    </div>
+</main>
+
+<div id="sequenceModal" class="custom-modal items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/20 p-6 w-full max-w-sm rounded-3xl shadow-2xl space-y-4">
+        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+            <h3 class="text-lg font-bold text-blue-400 flex items-center gap-2">
+                <i class="fas fa-stream"></i> Scent Index Profile
+            </h3>
+            <button onclick="closeSequence()" class="text-white/40 hover:text-white text-2xl">&times;</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-sm text-gray-300 max-h-60 overflow-y-auto p-1 font-medium">
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">1.</span> Mango</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">2.</span> Orange</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">3.</span> Lemon</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">4.</span> Coffee</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">5.</span> Rose</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">6.</span> Onion</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">7.</span> Chocolate</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">8.</span> Banana</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">9.</span> Garlic</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">10.</span> Mint</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">11.</span> Apple</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">12.</span> Soap</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">13.</span> Perfume</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">14.</span> Coconut</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">15.</span> Ginger</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">16.</span> Tea</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">17.</span> Clove</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">18.</span> Cinnamon</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">19.</span> Vinegar</div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-lg"><span class="text-blue-400 mr-1">20.</span> Turmeric</div>
+        </div>
+        <button class="w-full py-2.5 bg-white/10 border border-white/15 rounded-xl font-semibold text-sm" onclick="closeSequence()">Dismiss</button>
+    </div>
+</div>
+
+<script>
+// Safely unpack questions array passed from Flask backend context
+let questions = {{ questions|tojson if questions else '[]' }};
+let index = 0;
+let answers = [];
+let age = 0;
+
+// Step 1 UI Transmutation Trigger
+function goToTestScreen() {
+    document.getElementById("instructionPhase").style.display = "none";
+    document.getElementById("testPhase").style.display = "block";
+}
+
+function startTest() {
+    age = document.getElementById("ageInput").value;
+    if(!age || age < 1 || age > 120){
+        alert("Please assign a logical clinical age calculation parameter.");
+        return;
+    }
+    document.getElementById("ageScreen").style.display = "none";
+    document.getElementById("testScreen").style.display = "block";
+    loadQuestion();
+}
+
+function loadQuestion() {
+    if (!questions || questions.length === 0) {
+        alert("Question matrix context failure.");
+        return;
+    }
+
+    let q = questions[index];
+    document.getElementById("questionText").innerText = `Identify Scent Target: Choice #${index + 1}`;
+
+    let html = "";
+    q.options.forEach(opt => {
+        html += `
+            <button class="w-full py-3 bg-white/5 hover:bg-blue-600 hover:text-white border border-white/10 rounded-xl text-sm font-semibold transition text-gray-200 shadow-sm"
+                onclick="selectAnswer('${opt}')">
+                ${opt}
+            </button>
+        `;
+    });
+
+    document.getElementById("options").innerHTML = html;
+    document.getElementById("progress").innerText = `Evaluation: ${index + 1} of ${questions.length}`;
+}
+
+function selectAnswer(ans) {
+    let correct = questions[index].correct;
+    answers.push(ans === correct ? 1 : 0);
+    index++;
+
+    if(index >= questions.length){
+        submitTest();
+        return;
+    }
+    loadQuestion();
+}
+
+function submitTest() {
+    document.getElementById("options").innerHTML = `
+        <div class="text-center py-8 space-y-3">
+            <div class="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mx-auto"></div>
+            <p class="text-sm text-gray-400 font-mono">Pushing classification variables...</p>
+        </div>
+    `;
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/predict_smell";
+
+    form.appendChild(createInput("age", age));
+    form.appendChild(createInput("gender", 0));
+
+    answers.forEach((val, i) => {
+        form.appendChild(createInput("q" + i, val));
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function createInput(name, value){
+    let input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    return input;
+}
+
+function showSequence(){ document.getElementById("sequenceModal").style.display = "flex"; }
+function closeSequence(){ document.getElementById("sequenceModal").style.display = "none"; }
+</script>
+
+</body>
+</html>

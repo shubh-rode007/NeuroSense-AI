@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handwriting Analysis - NeuroSence AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-h-screen; color: white; }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; }
+        .navbar { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border-b: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body>
+
+<nav class="navbar fixed top-0 left-0 right-0 z-50 p-4">
+    <div class="container mx-auto flex justify-between items-center px-4">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span class="text-white font-bold text-sm">N</span>
+            </div>
+            <span class="font-bold text-lg tracking-tight">NeuroSence <span class="text-blue-400">AI</span></span>
+        </div>
+        <a href="http://127.0.0.1:8000/dashboard.html" class="px-5 py-2 border border-white/20 rounded-xl hover:bg-white/10 transition text-sm flex items-center gap-2">
+            <i class="fas fa-th-large"></i> Go Dashboard
+        </a>
+    </div>
+</nav>
+
+<main id="instructionPhase" class="container mx-auto pt-28 pb-12 px-6 max-w-4xl">
+    <div class="glass-card p-8 space-y-8 shadow-2xl border border-white/10">
+        <div class="text-center max-w-2xl mx-auto">
+            <div class="text-6xl mb-4 animate-bounce">✍️</div>
+            <h1 class="text-4xl font-black tracking-tight text-white mb-4">
+                Handwriting Assessment (Micrographia Test)
+            </h1>
+            <p class="text-gray-300 text-sm leading-relaxed">
+                Parkinson’s disease progressively impacts fine motor movements, leading to a condition known as <strong>Micrographia</strong>—where handwriting becomes abnomally small, cramped, or crowded. This computer vision module evaluates line structures, geometric deviations, and spacing metrics from your uploaded drawing pattern to screen for subtle motor rigidity.
+            </p>
+        </div>
+
+        <hr class="border-white/10">
+
+        <div class="space-y-4">
+            <h2 class="text-xl font-bold text-blue-400 flex items-center gap-2">
+                <i class="fas fa-info-circle"></i> Instructions & Assessment Steps:
+            </h2>
+            <div class="grid md:grid-cols-2 gap-4 text-sm text-gray-300">
+                <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex gap-3">
+                    <span class="font-bold text-blue-400">01.</span>
+                    <p>Take a blank sheet of white paper and draw a steady <strong>spiral pattern</strong> or write a standard short sentence.</p>
+                </div>
+                <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex gap-3">
+                    <span class="font-bold text-blue-400">02.</span>
+                    <p>Capture a clear image of your paper sample using your mobile phone or laptop webcam under bright lighting.</p>
+                </div>
+                <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex gap-3">
+                    <span class="font-bold text-blue-400">03.</span>
+                    <p>Click the button below, upload the image into the workspace box, and check the live file preview layout.</p>
+                </div>
+                <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex gap-3">
+                    <span class="font-bold text-blue-400">04.</span>
+                    <p>Hit the analyze control button. The vision framework calculates geometric deviations to process results.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-4 text-center">
+            <button onclick="goToTestScreen()" class="px-10 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl font-bold text-white text-lg shadow-xl shadow-blue-500/10 hover:shadow-blue-500/20 transition transform hover:-translate-y-0.5 inline-flex items-center gap-3">
+                Proceed to Take Test <i class="fas fa-chevron-right text-sm"></i>
+            </button>
+        </div>
+    </div>
+</main>
+
+<main id="testPhase" class="container mx-auto pt-28 pb-12 px-6 max-w-md" style="display: none;">
+    <div class="glass-card p-8 shadow-xl border border-blue-500/20 flex flex-col items-center justify-center text-center">
+        
+        <h3 class="text-xl font-bold text-white mb-2">Upload Handwriting Sample</h3>
+        <p class="text-gray-400 text-xs px-2 mb-6">Ensure the drawing file is highly legible and focused cleanly in frame.</p>
+
+        <div class="w-full">
+            <label for="imageInput" class="w-full py-4 px-4 bg-white/5 border border-white/10 hover:bg-white/10 border-dashed rounded-xl cursor-pointer text-sm font-semibold transition text-blue-400 flex flex-col items-center justify-center gap-2">
+                <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                <span id="uploadLabel">Select Image File</span>
+                <input type="file" id="imageInput" class="hidden" accept="image/*">
+            </label>
+        </div>
+
+        <div class="mt-6 w-full flex justify-center">
+            <img id="preview" src="" class="max-w-xs h-40 object-cover rounded-xl border border-white/10 shadow-lg" style="display:none;">
+        </div>
+
+        <div class="my-4">
+            <span id="status" class="inline-block px-3 py-1 bg-white/10 text-white/80 rounded-full text-xs font-mono font-bold tracking-wide uppercase">
+                Idle
+            </span>
+        </div>
+
+        <button class="w-full py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl font-bold text-white shadow-lg transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2" onclick="uploadImage()">
+            <i class="fas fa-rocket text-xs"></i> Analyse Handwriting
+        </button>
+
+        <div id="loader" class="my-6 animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent" style="display:none;"></div>
+
+        <div class="mt-2">
+            <h3 id="result" class="text-2xl font-black tracking-wide text-green-400 uppercase"></h3>
+        </div>
+
+        <button onclick="resetTest()" class="mt-6 w-full py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition flex items-center justify-center gap-2">
+            <i class="fas fa-redo-alt text-[10px]"></i> Clear & Retest
+        </button>
+
+    </div>
+</main>
+
+<script>
+// SPA Display Transmutation Toggles
+function goToTestScreen() {
+    document.getElementById("instructionPhase").style.display = "none";
+    document.getElementById("testPhase").style.display = "block";
+}
+
+// Live local element preview updates
+document.getElementById("imageInput").addEventListener("change", function(e){
+    const file = e.target.files[0];
+    if(file){
+        const url = URL.createObjectURL(file);
+        const img = document.getElementById("preview");
+        img.src = url;
+        img.style.display = "block";
+        document.getElementById("uploadLabel").innerText = file.name;
+        document.getElementById("status").innerText = "Sample Loaded";
+        document.getElementById("status").className = "inline-block px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-mono font-bold tracking-wide uppercase";
+    }
+});
+
+async function uploadImage() {
+    const fileInput = document.getElementById("imageInput");
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert("Please select a target handwriting image element first.");
+        return;
+    }
+
+    document.getElementById("loader").style.display = "block";
+    document.getElementById("status").innerText = "Analyzing handwriting...";
+    document.getElementById("status").className = "inline-block px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-mono font-bold tracking-wide uppercase animate-pulse";
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+        const response = await fetch('/predict_handwriting', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("result").innerText = data.result;
+        document.getElementById("status").innerText = "Analysis Complete";
+        document.getElementById("status").className = "inline-block px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-mono font-bold tracking-wide uppercase";
+    } catch (err) {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("status").innerText = "Server Error";
+        document.getElementById("status").className = "inline-block px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs font-mono font-bold tracking-wide uppercase";
+    }
+}
+
+function resetTest() {
+    document.getElementById("imageInput").value = "";
+    document.getElementById("preview").style.display = "none";
+    document.getElementById("uploadLabel").innerText = "Select Image File";
+    
+    document.getElementById("result").innerText = "";
+    document.getElementById("status").innerText = "Idle";
+    document.getElementById("status").className = "inline-block px-3 py-1 bg-white/10 text-white/80 rounded-full text-xs font-mono font-bold tracking-wide uppercase";
+
+    document.getElementById("loader").style.display = "none";
+}
+</script>
+
+</body>
+</html>

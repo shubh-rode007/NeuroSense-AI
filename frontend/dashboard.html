@@ -1,0 +1,685 @@
+<!-- dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dashboard - NeuroSence AI Assessment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); overflow-x: hidden; }
+        .glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 24px; }
+        .glass-card-white { background: rgba(255, 255, 255, 0.95); border-radius: 24px; box-shadow: 0 25px 45px -12px rgba(0,0,0,0.2); }
+        .model-card { background: white; border-radius: 24px; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden; }
+        .model-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -12px rgba(0,0,0,0.3); }
+        .model-card.locked { opacity: 0.6; cursor: not-allowed; }
+        .model-card.completed { border: 2px solid #10b981; background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%); }
+        .status-badge { position: absolute; top: 16px; right: 16px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-current { background: #dbeafe; color: #1e40af; }
+        .progress-bar { background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.5s ease; }
+        .step-indicator { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: all 0.3s; }
+        .step-active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 0 0 4px rgba(102,126,234,0.3); }
+        .step-completed { background: #10b981; color: white; }
+        .step-pending { background: #e5e7eb; color: #6b7280; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); } 50% { box-shadow: 0 0 0 15px rgba(102, 126, 234, 0); } }
+        .current-model { animation: pulse 2s infinite; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 1000; animation: fadeIn 0.3s ease; }
+        .modal-content { background: white; max-width: 600px; width: 90%; border-radius: 24px; animation: slideUp 0.4s ease; max-height: 85vh; overflow-y: auto; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .toast { position: fixed; bottom: 20px; right: 20px; z-index: 2000; animation: slideInRight 0.3s ease; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .tab-active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .tab-inactive { background: rgba(255,255,255,0.2); color: white; }
+        .caregiver-card { transition: all 0.3s ease; }
+        .caregiver-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; }
+        /* Container to center button */
+        .final-btn-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        /* Button style */
+        .final-btn {
+            padding: 14px 36px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        /* Hover effect */
+        .final-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Optional glow animation */
+        .final-btn {
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px rgba(59,130,246,0.4);
+            }
+            to {
+                box-shadow: 0 0 20px rgba(139,92,246,0.8);
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/10 backdrop-blur-md border-b border-white/20">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">N</span>
+                    </div>
+                    <div>
+                        <span class="text-white font-bold text-xl">NeuroSence AI</span>
+                        <p class="text-white/70 text-xs">Welcome, <span id="patientName">Patient</span></p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="logout()" class="text-white hover:text-red-300 transition">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-24 pb-12 px-6">
+        <div class="container mx-auto max-w-6xl">
+            <div class="flex gap-3 mb-8 justify-center">
+                <button onclick="switchTab('assessment')" id="tabAssessment" class="px-8 py-3 rounded-full font-semibold transition-all tab-active">
+                    <i class="fas fa-stethoscope mr-2"></i> Health Assessment
+                </button>
+                <button onclick="switchTab('caregiver')" id="tabCaregiver" class="px-8 py-3 rounded-full font-semibold transition-all tab-inactive">
+                    <i class="fas fa-hands-helping mr-2"></i> Caregiver Support
+                </button>
+            </div>
+
+            <div id="assessmentTab">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Your Health Assessment Journey</h1>
+                    <p class="text-xl text-white/80 max-w-2xl mx-auto">Complete all 4 assessments to get your comprehensive Parkinson's risk analysis</p>
+                </div>
+                <div class="glass-card p-6 mb-10">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-white font-semibold">Overall Progress</h3>
+                        <span class="text-white text-2xl font-bold" id="progressPercent">0%</span>
+                    </div>
+                    <div class="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+                        <div class="progress-bar h-3 rounded-full" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <p class="text-white/70 text-sm mt-2" id="progressMessage">Start with Voice Analysis to begin your assessment</p>
+                </div>
+                <div class="glass-card-white p-6 mb-10">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><span class="text-3xl">📋</span> How to Complete Your Assessment</h2>
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <div class="text-center"><div class="step-indicator mx-auto mb-3 step-completed" id="step1Indicator">1</div><h4 class="font-semibold text-gray-800">Voice Analysis</h4><p class="text-sm text-gray-600">Record your voice</p></div>
+                        <div class="text-center"><div class="step-indicator mx-auto mb-3 step-pending" id="step2Indicator">2</div><h4 class="font-semibold text-gray-800">Smell Test</h4><p class="text-sm text-gray-600">Answer questions</p></div>
+                        <div class="text-center"><div class="step-indicator mx-auto mb-3 step-pending" id="step3Indicator">3</div><h4 class="font-semibold text-gray-800">Handwriting</h4><p class="text-sm text-gray-600">Draw patterns</p></div>
+                        <div class="text-center"><div class="step-indicator mx-auto mb-3 step-pending" id="step4Indicator">4</div><h4 class="font-semibold text-gray-800">Gesture Recognition</h4><p class="text-sm text-gray-600">Webcam capture</p></div>
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6 mb-10">
+                    <div class="model-card p-6 current-model" id="model1" onclick="openModel(1)">
+                        <div class="status-badge status-current" id="badge1">Current</div>
+                        <div class="text-center mb-4"><div class="text-6xl mb-3">🎤</div><h3 class="text-2xl font-bold text-gray-800">Voice Analysis</h3><p class="text-gray-600 mt-2">Analyze speech patterns and tremor</p></div>
+                        <div class="border-t pt-4 mt-2"><div class="flex justify-between text-sm"><span class="text-gray-500"><i class="far fa-clock mr-1"></i> ~3 min</span><span class="text-gray-500"><i class="fas fa-chart-line mr-1"></i> 94% accuracy</span></div></div>
+                    </div>
+                    <div class="model-card p-6 locked" id="model2" onclick="openModel(2)">
+                        <div class="status-badge status-pending" id="badge2">Locked</div>
+                        <div class="text-center mb-4"><div class="text-6xl mb-3">👃</div><h3 class="text-2xl font-bold text-gray-800">Smell Test</h3><p class="text-gray-600 mt-2">Assess olfactory function</p></div>
+                        <div class="border-t pt-4 mt-2"><div class="flex justify-between text-sm"><span class="text-gray-500"><i class="far fa-clock mr-1"></i> ~5 min</span><span class="text-gray-500"><i class="fas fa-chart-line mr-1"></i> 88% accuracy</span></div></div>
+                    </div>
+                    <div class="model-card p-6 locked" id="model3" onclick="openModel(3)">
+                        <div class="status-badge status-pending" id="badge3">Locked</div>
+                        <div class="text-center mb-4"><div class="text-6xl mb-3">✍️</div><h3 class="text-2xl font-bold text-gray-800">Handwriting Analysis</h3><p class="text-gray-600 mt-2">Analyze micrographia</p></div>
+                        <div class="border-t pt-4 mt-2"><div class="flex justify-between text-sm"><span class="text-gray-500"><i class="far fa-clock mr-1"></i> ~4 min</span><span class="text-gray-500"><i class="fas fa-chart-line mr-1"></i> 91% accuracy</span></div></div>
+                    </div>
+                    <!-- <div class="model-card p-6 locked" id="model4" onclick="openModel(4)">
+                        <div class="status-badge status-pending" id="badge4">Locked</div>
+                        <div class="text-center mb-4"><div class="text-6xl mb-3">🖐️</div><h3 class="text-2xl font-bold text-gray-800">Movement Analysis</h3><p class="text-gray-600 mt-2">Capture hand gestures</p></div>
+                        <div class="border-t pt-4 mt-2"><div class="flex justify-between text-sm"><span class="text-gray-500"><i class="far fa-clock mr-1"></i> ~3 min</span><span class="text-gray-500"><i class="fas fa-chart-line mr-1"></i> 96% accuracy</span></div></div>
+                    </div> -->
+                    <div class="model-card p-6" id="model4" onclick="window.location.href='http://127.0.0.1:5000/movement'">
+                        <div class="status-badge status-current" id="badge4">Available</div>
+                        <div class="text-center mb-4">
+                            <div class="text-6xl mb-3">🖐️</div>
+                            <h3 class="text-2xl font-bold text-gray-800">Sign Language Recognition</h3>
+                            <p class="text-gray-600 mt-2">Communication Bridge between Patient & Caregiver </p>
+                        </div>
+                        <div class="border-t pt-4 mt-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500"><i class="far fa-clock mr-1"></i> ~3 min</span>
+                                <span class="text-gray-500"><i class="fas fa-chart-line mr-1"></i> 96% accuracy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button onclick="window.location.href='http://127.0.0.1:5000/final_result'" 
+                            style="
+                                background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                                border: none;
+                                padding: 12px 25px;
+                                border-radius: 30px;
+                                color: white;
+                                font-weight: 600;
+                                font-size: 16px;
+                                cursor: pointer;
+                                box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+                                transition: 0.3s;
+                            "
+                            onmouseover="this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.transform='scale(1)'"
+                        >
+                            🧠 View Final Result
+                        </button>
+                    </div>
+
+
+
+                </div>
+            </div>
+
+            <div id="caregiverTab" style="display: none;">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-4"><i class="fas fa-hands-helping"></i> Caregiver Support Network</h1>
+                    <p class="text-xl text-white/80 max-w-2xl mx-auto">Connect with trained caregivers for emotional support and guidance</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="glass-card-white p-6 text-center cursor-pointer hover:scale-105 transition" onclick="openFindCaregiverModal()">
+                        <div class="text-6xl mb-4">🤝</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Find a Caregiver</h3>
+                        <p class="text-gray-600">Connect with a trained caregiver for emotional support</p>
+                        <div class="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full text-sm"><i class="fas fa-search mr-1"></i> Browse Caregivers</div>
+                    </div>
+                    <div class="glass-card-white p-6 text-center cursor-pointer hover:scale-105 transition" onclick="openBecomeCaregiverModal()">
+                        <div class="text-6xl mb-4">💝</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Become a Caregiver</h3>
+                        <p class="text-gray-600">Register as a caregiver to support Parkinson's patients</p>
+                        <div class="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-full text-sm"><i class="fas fa-user-plus mr-1"></i> Register as Caregiver</div>
+                    </div>
+                </div>
+                <div class="glass-card p-6 mb-8">
+                    <h3 class="text-white font-semibold text-lg mb-4"><i class="fas fa-users mr-2"></i> Your Active Connections</h3>
+                    <div id="activeConnections" class="space-y-3"><div class="text-center text-white/60 py-4"><i class="fas fa-comments text-2xl mb-2 block"></i>No active connections yet.</div></div>
+                </div>
+                <div class="glass-card p-6">
+                    <h3 class="text-white font-semibold text-lg mb-4"><i class="fas fa-heart mr-2 text-red-300"></i> Why Caregiver Support Matters</h3>
+                    <div class="grid md:grid-cols-3 gap-4 text-white/80 text-sm">
+                        <div class="flex items-start gap-2"><i class="fas fa-smile text-green-300 mt-1"></i><span>Emotional companionship</span></div>
+                        <div class="flex items-start gap-2"><i class="fas fa-brain text-purple-300 mt-1"></i><span>Share experiences</span></div>
+                        <div class="flex items-start gap-2"><i class="fas fa-phone-alt text-blue-300 mt-1"></i><span>24/7 availability</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="voiceModal" class="modal" onclick="closeModalOnBackground(event, 'voiceModal')">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="modal-content"><div class="sticky top-0 bg-white p-6 border-b rounded-t-2xl flex justify-between items-center"><h2 class="text-2xl font-bold text-gray-800">🎤 Voice Analysis</h2><button onclick="closeVoiceModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div>
+            <div class="p-6"><div class="text-center mb-6"><div class="w-32 h-32 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4"><div class="text-5xl animate-pulse">🎙️</div></div><h3 class="text-xl font-semibold mb-2">Record Your Voice</h3><p class="text-gray-600">Please read: "The early detection of Parkinson's disease can significantly improve treatment outcomes."</p></div>
+            <div class="space-y-4"><button id="recordBtn" class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl font-semibold text-white"><i class="fas fa-microphone mr-2"></i> Start Recording</button><button id="stopBtn" class="w-full py-3 bg-gray-300 rounded-xl font-semibold text-gray-700 hidden"><i class="fas fa-stop mr-2"></i> Stop Recording</button><button id="submitVoiceBtn" class="w-full py-3 bg-green-600 rounded-xl font-semibold text-white hidden"><i class="fas fa-check mr-2"></i> Submit Analysis</button></div>
+            <div id="voiceStatus" class="mt-4 text-center text-sm text-gray-500"></div></div></div></div>
+    </div>
+
+    <div id="findCaregiverModal" class="modal" onclick="closeModalOnBackground(event, 'findCaregiverModal')">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="modal-content max-w-2xl"><div class="sticky top-0 bg-white p-6 border-b rounded-t-2xl flex justify-between items-center"><h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-search"></i> Find a Caregiver</h2><button onclick="closeFindCaregiverModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div>
+            <div class="p-6"><div class="mb-6"><label class="block text-sm font-medium text-gray-700 mb-2">Preferred Language</label><select id="preferredLanguage" class="w-full px-4 py-2 border rounded-xl"><option>English</option><option>Hindi</option><option>Tamil</option><option>Telugu</option></select></div>
+            <div id="caregiverList" class="space-y-3 max-h-96 overflow-y-auto"><div class="text-center text-gray-500 py-8"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading caregivers...</p></div></div></div></div></div>
+    </div>
+
+    <div id="becomeCaregiverModal" class="modal" onclick="closeModalOnBackground(event, 'becomeCaregiverModal')">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="modal-content max-w-md"><div class="sticky top-0 bg-white p-6 border-b rounded-t-2xl flex justify-between items-center"><h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-hands-helping"></i> Register as Caregiver</h2><button onclick="closeBecomeCaregiverModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div>
+            <div class="p-6"><form id="caregiverForm"><div class="space-y-4"><div><label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label><input type="text" id="caregiverName" required class="w-full px-4 py-2 border rounded-xl"></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label><input type="tel" id="caregiverPhone" required class="w-full px-4 py-2 border rounded-xl"></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-2">Email *</label><input type="email" id="caregiverEmail" required class="w-full px-4 py-2 border rounded-xl"></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-2">Languages Spoken *</label><select id="caregiverLanguages" multiple class="w-full px-4 py-2 border rounded-xl" size="3"><option>English</option><option>Hindi</option><option>Tamil</option><option>Telugu</option></select></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-2">Availability *</label><select id="caregiverAvailability" required class="w-full px-4 py-2 border rounded-xl"><option>5-10 hours</option><option>10-20 hours</option><option>20-30 hours</option><option>30+ hours</option></select></div>
+            <button type="submit" class="w-full py-3 bg-gradient-to-r from-green-500 to-teal-600 rounded-xl font-semibold text-white"><i class="fas fa-heart mr-2"></i> Register as Caregiver</button></div></form></div></div></div>
+    </div>
+
+    <div id="chatModal" class="modal" onclick="closeModalOnBackground(event, 'chatModal')">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="modal-content max-w-md"><div class="sticky top-0 bg-white p-6 border-b rounded-t-2xl flex justify-between items-center"><h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-comment-dots"></i> Chat with <span id="chatWithName"></span></h2><button onclick="closeChatModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button></div>
+            <div class="p-6"><div id="chatMessages" class="h-96 overflow-y-auto mb-4 space-y-3"></div><div class="flex gap-2"><input type="text" id="chatInput" placeholder="Type your message..." class="flex-1 px-4 py-2 border rounded-xl"><button onclick="sendMessage()" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl"><i class="fas fa-paper-plane"></i></button></div>
+            <div class="mt-3"><button onclick="makeCall()" class="w-full py-2 bg-green-600 text-white rounded-xl"><i class="fas fa-phone-alt mr-2"></i> Call Caregiver</button></div></div></div></div>
+    </div>
+
+    <div id="toastContainer"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyAaFxUSOGUZfKUhOc-LWFL5_VPOktkrIjA",
+            authDomain: "parkinsondetectionapp-cb677.firebaseapp.com",
+            projectId: "parkinsondetectionapp-cb677",
+            storageBucket: "parkinsondetectionapp-cb677.firebasestorage.app",
+            messagingSenderId: "148898300215",
+            appId: "1:148898300215:web:44436a682cfb2690439ab2"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let currentProgress = { voice: false, smell: false, handwriting: false, signLanguage: false };
+        let currentChatPartner = null;
+        
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast bg-white rounded-xl shadow-xl p-4 min-w-[300px] border-l-4 ${type === 'success' ? 'border-green-500' : 'border-red-500'}`;
+            toast.innerHTML = `<p class="text-gray-800 font-semibold">${type === 'success' ? '✓' : '✗'} ${message}</p>`;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        window.switchTab = (tab) => {
+            const assessmentTab = document.getElementById('assessmentTab');
+            const caregiverTab = document.getElementById('caregiverTab');
+            const tabAssessment = document.getElementById('tabAssessment');
+            const tabCaregiver = document.getElementById('tabCaregiver');
+            if (tab === 'assessment') {
+                assessmentTab.style.display = 'block';
+                caregiverTab.style.display = 'none';
+                tabAssessment.className = 'px-8 py-3 rounded-full font-semibold transition-all tab-active';
+                tabCaregiver.className = 'px-8 py-3 rounded-full font-semibold transition-all tab-inactive';
+            } else {
+                assessmentTab.style.display = 'none';
+                caregiverTab.style.display = 'block';
+                tabAssessment.className = 'px-8 py-3 rounded-full font-semibold transition-all tab-inactive';
+                tabCaregiver.className = 'px-8 py-3 rounded-full font-semibold transition-all tab-active';
+                loadCaregivers();
+                loadConnections();
+            }
+        };
+        
+        async function loadProgress() {
+            const userId = sessionStorage.getItem('userId');
+            if (!userId) { window.location.href = '/index.html'; return; }
+            const patientName = sessionStorage.getItem('patientName') || 'Patient';
+            document.getElementById('patientName').textContent = patientName;
+            try {
+                const docRef = doc(db, 'patients', userId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.assessments) {
+                        currentProgress.voice = !!data.assessments.voice;
+                        currentProgress.smell = !!data.assessments.smell;
+                        currentProgress.handwriting = !!data.assessments.handwriting;
+                        currentProgress.signLanguage = !!data.assessments.signLanguage;
+                    }
+                    updateUI();
+                }
+            } catch (error) { console.error(error); }
+        }
+        
+        function updateUI() {
+            const completedCount = Object.values(currentProgress).filter(v => v === true).length;
+            const percent = (completedCount / 4) * 100;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            document.getElementById('progressPercent').textContent = `${Math.round(percent)}%`;
+            for (let i = 1; i <= 4; i++) {
+                const modelCard = document.getElementById(`model${i}`);
+                const badge = document.getElementById(`badge${i}`);
+                const stepIndicator = document.getElementById(`step${i}Indicator`);
+                const modelNames = ['voice', 'smell', 'handwriting', 'signLanguage'];
+                // const isCompleted = currentProgress[modelNames[i-1]];
+                // const isCurrent = !isCompleted && (i === 1 || currentProgress[modelNames[i-2]]);
+                for (let i = 1; i <= 4; i++) {
+                    const modelCard = document.getElementById(`model${i}`);
+                    const badge = document.getElementById(`badge${i}`);
+                    const stepIndicator = document.getElementById(`step${i}Indicator`);
+
+                    // ✅ Remove all lock styles
+                    modelCard.classList.remove('locked', 'completed', 'current-model');
+
+                    // ✅ Make all available
+                    badge.textContent = 'Available';
+                    badge.className = 'status-badge status-current';
+
+                    stepIndicator.className = 'step-indicator mx-auto mb-3 step-active';
+                    stepIndicator.textContent = i;
+                }
+
+
+                if (isCompleted) {
+                    modelCard.classList.remove('locked', 'current-model');
+                    modelCard.classList.add('completed');
+                    badge.textContent = 'Completed';
+                    badge.className = 'status-badge status-completed';
+                    stepIndicator.className = 'step-indicator mx-auto mb-3 step-completed';
+                    stepIndicator.textContent = '✓';
+                } else if (isCurrent) {
+                    modelCard.classList.remove('locked', 'completed');
+                    modelCard.classList.add('current-model');
+                    badge.textContent = 'Current';
+                    badge.className = 'status-badge status-current';
+                    stepIndicator.className = 'step-indicator mx-auto mb-3 step-active';
+                    stepIndicator.textContent = i;
+                } else {
+                    modelCard.classList.add('locked');
+                    modelCard.classList.remove('completed', 'current-model');
+                    badge.textContent = 'Locked';
+                    badge.className = 'status-badge status-pending';
+                    stepIndicator.className = 'step-indicator mx-auto mb-3 step-pending';
+                    stepIndicator.textContent = i;
+                }
+            }
+        }
+        
+        // window.openModel = async (modelNumber) => {
+        //     if (modelNumber === 1 || currentProgress.voice) {
+        //         if (modelNumber === 1) document.getElementById('voiceModal').style.display = 'flex';
+        //         else if (modelNumber === 2 && currentProgress.voice) showToast('Smell test coming soon!', 'success');
+        //         else showToast('Please complete previous assessments first!', 'error');
+        //     } else showToast('Please complete previous assessments first!', 'error');
+        // };
+
+
+        window.openModel = async (modelNumber) => {
+                switch(modelNumber) {
+                    case 1:
+                        window.location.href = 'http://127.0.0.1:5000/voice';
+                        break;
+                    case 2:
+                        window.location.href = 'http://127.0.0.1:5000/smell';
+                        break;
+
+                    case 3:
+                        window.location.href = 'http://127.0.0.1:5000/handwriting';
+                        break;
+
+                    case 4:
+                        // 🔥 IMPORTANT: Connect to Flask
+                        window.location.href = 'http://127.0.0.1:5000/movement';
+                        break;
+                }
+            };
+        
+        let mediaRecorder, audioChunks = [];
+        document.getElementById('recordBtn')?.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    document.getElementById('voiceStatus').innerHTML = 'Recording saved! Click Submit.';
+                    document.getElementById('submitVoiceBtn').classList.remove('hidden');
+                };
+                mediaRecorder.start();
+                document.getElementById('recordBtn').classList.add('hidden');
+                document.getElementById('stopBtn').classList.remove('hidden');
+                document.getElementById('voiceStatus').innerHTML = 'Recording... Speak clearly.';
+            } catch (error) { showToast('Microphone access denied', 'error'); }
+        });
+        document.getElementById('stopBtn')?.addEventListener('click', () => { mediaRecorder.stop(); document.getElementById('stopBtn').classList.add('hidden'); });
+        document.getElementById('submitVoiceBtn')?.addEventListener('click', async () => {
+            showToast('Voice analysis submitted!', 'success');
+            currentProgress.voice = true;
+            const userId = sessionStorage.getItem('userId');
+            await updateDoc(doc(db, 'patients', userId), { 'assessments.voice': { completed: true, timestamp: new Date().toISOString(), score: 85 } });
+            updateUI();
+            closeVoiceModal();
+        });
+        
+        // CAREGIVER FUNCTIONS
+        window.loadCaregivers = async function() {
+            try {
+                console.log("Loading caregivers...");
+                const q = query(collection(db, 'caregivers'));
+                const querySnapshot = await getDocs(q);
+                const caregiverList = document.getElementById('caregiverList');
+                console.log("Found caregivers:", querySnapshot.size);
+                
+                if (querySnapshot.empty) {
+                    caregiverList.innerHTML = '<div class="text-center text-gray-500 py-8">No caregivers available. Be the first to register!</div>';
+                    return;
+                }
+                
+                caregiverList.innerHTML = '';
+                querySnapshot.forEach(doc => {
+                    const caregiver = doc.data();
+                    const caregiverId = doc.id;
+                    console.log("Caregiver:", caregiverId, caregiver);
+                    
+                    caregiverList.innerHTML += `
+                        <div class="caregiver-card bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                            <div>
+                                <h4 class="font-semibold">${caregiver.fullName || 'Unknown'}</h4>
+                                <p class="text-sm text-gray-600"><i class="fas fa-language"></i> ${caregiver.languages || 'English'} | <i class="fas fa-clock"></i> ${caregiver.availability || 'Flexible'}</p>
+                            </div>
+                            <button onclick="window.connectWithCaregiver('${caregiverId}', '${caregiver.fullName}', '${caregiver.phone || ''}')" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg text-sm hover:shadow-lg transition">
+                                <i class="fas fa-handshake"></i> Connect
+                            </button>
+                        </div>
+                    `;
+                });
+            } catch (error) { 
+                console.error("Error loading caregivers:", error); 
+                document.getElementById('caregiverList').innerHTML = '<div class="text-center text-red-500 py-8">Error loading caregivers: ' + error.message + '</div>';
+            }
+        };
+        
+        window.connectWithCaregiver = async function(caregiverId, caregiverName, caregiverPhone) {
+            console.log("=== CONNECT BUTTON CLICKED ===");
+            console.log("Caregiver ID:", caregiverId);
+            console.log("Caregiver Name:", caregiverName);
+            console.log("Caregiver Phone:", caregiverPhone);
+            
+            const userId = sessionStorage.getItem('userId');
+            const patientName = sessionStorage.getItem('patientName');
+            
+            console.log("User ID:", userId);
+            console.log("Patient Name:", patientName);
+            
+            if (!userId) { 
+                showToast('Please login first', 'error');
+                return;
+            }
+            
+            try {
+                // Check if connection already exists
+                console.log("Checking for existing connection...");
+                const connectionsRef = collection(db, 'connections');
+                const q = query(connectionsRef, 
+                    where('patientId', '==', userId), 
+                    where('caregiverId', '==', caregiverId),
+                    where('status', '==', 'active')
+                );
+                const existing = await getDocs(q);
+                
+                if (!existing.empty) { 
+                    console.log("Connection already exists");
+                    showToast('Already connected with this caregiver!', 'error'); 
+                    closeFindCaregiverModal(); 
+                    loadConnections(); 
+                    return; 
+                }
+                
+                // Create new connection
+                console.log("Creating new connection...");
+                const connectionData = {
+                    patientId: userId,
+                    patientName: patientName || 'Patient',
+                    caregiverId: caregiverId,
+                    caregiverName: caregiverName,
+                    caregiverPhone: caregiverPhone || 'Not provided',
+                    status: 'active',
+                    connectedAt: new Date().toISOString()
+                };
+                console.log("Connection data:", connectionData);
+                
+                await addDoc(collection(db, 'connections'), connectionData);
+                console.log("Connection created successfully!");
+                
+                showToast(`✓ Connected with ${caregiverName}!`, 'success');
+                closeFindCaregiverModal();
+                loadConnections();
+                
+            } catch (error) { 
+                console.error("Connection error:", error);
+                showToast('Failed to connect: ' + error.message, 'error');
+            }
+        };
+        
+        window.loadConnections = async function() {
+            const userId = sessionStorage.getItem('userId');
+            if (!userId) return;
+            
+            try {
+                console.log("Loading connections for user:", userId);
+                const q = query(collection(db, 'connections'), where('patientId', '==', userId), where('status', '==', 'active'));
+                const querySnapshot = await getDocs(q);
+                const container = document.getElementById('activeConnections');
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<div class="text-center text-white/60 py-4"><i class="fas fa-comments text-2xl mb-2 block"></i>No active connections yet. Find a caregiver to start a conversation.</div>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                querySnapshot.forEach(doc => {
+                    const conn = doc.data();
+                    container.innerHTML += `
+                        <div class="bg-white/20 rounded-xl p-4 flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold text-white">${conn.caregiverName}</p>
+                                <p class="text-white/70 text-sm">Connected since ${new Date(conn.connectedAt).toLocaleDateString()}</p>
+                            </div>
+                            <button onclick="window.openChat('${conn.caregiverId}', '${conn.caregiverName}', '${conn.caregiverPhone}')" class="px-4 py-2 bg-white text-purple-600 rounded-lg font-semibold">
+                                <i class="fas fa-comment-dots"></i> Chat
+                            </button>
+                        </div>
+                    `;
+                });
+            } catch (error) { 
+                console.error("Error loading connections:", error);
+            }
+        };
+        
+        window.openChat = function(caregiverId, caregiverName, caregiverPhone) {
+            currentChatPartner = { id: caregiverId, name: caregiverName, phone: caregiverPhone };
+            document.getElementById('chatWithName').textContent = caregiverName;
+            document.getElementById('chatModal').style.display = 'flex';
+            loadChatMessages(caregiverId);
+        };
+        
+        async function loadChatMessages(caregiverId) {
+            const userId = sessionStorage.getItem('userId');
+            const chatId = [userId, caregiverId].sort().join('_');
+            const messagesRef = collection(db, 'chats', chatId, 'messages');
+            const q = query(messagesRef, orderBy('timestamp', 'asc'));
+            const querySnapshot = await getDocs(q);
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+            querySnapshot.forEach(doc => {
+                const msg = doc.data();
+                const isUser = msg.senderId === userId;
+                chatMessages.innerHTML += `
+                    <div class="flex ${isUser ? 'justify-end' : 'justify-start'}">
+                        <div class="max-w-[70%] ${isUser ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' : 'bg-gray-100'} rounded-xl p-3">
+                            <p class="text-sm">${msg.message}</p>
+                            <p class="text-xs ${isUser ? 'text-blue-100' : 'text-gray-500'} mt-1">${new Date(msg.timestamp).toLocaleTimeString()}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        window.sendMessage = async function() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message || !currentChatPartner) return;
+            const userId = sessionStorage.getItem('userId');
+            const chatId = [userId, currentChatPartner.id].sort().join('_');
+            await addDoc(collection(db, 'chats', chatId, 'messages'), {
+                message: message,
+                senderId: userId,
+                receiverId: currentChatPartner.id,
+                timestamp: new Date().toISOString()
+            });
+            input.value = '';
+            loadChatMessages(currentChatPartner.id);
+        };
+        
+        window.makeCall = function() {
+            if (currentChatPartner && currentChatPartner.phone) {
+                showToast(`Calling ${currentChatPartner.name} at ${currentChatPartner.phone}...`, 'success');
+                window.open(`tel:${currentChatPartner.phone}`);
+            } else {
+                showToast('Phone number not available', 'error');
+            }
+        };
+        
+        // Caregiver Registration
+        document.getElementById('caregiverForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const languages = Array.from(document.getElementById('caregiverLanguages').selectedOptions).map(opt => opt.value).join(', ');
+            try {
+                await addDoc(collection(db, 'caregivers'), {
+                    fullName: document.getElementById('caregiverName').value,
+                    phone: document.getElementById('caregiverPhone').value,
+                    email: document.getElementById('caregiverEmail').value,
+                    languages: languages,
+                    availability: document.getElementById('caregiverAvailability').value,
+                    registeredAt: new Date().toISOString()
+                });
+                showToast('Registered as caregiver!', 'success');
+                closeBecomeCaregiverModal();
+                if (document.getElementById('caregiverTab').style.display !== 'none') loadCaregivers();
+            } catch(error) {
+                showToast('Registration failed: ' + error.message, 'error');
+            }
+        });
+        
+        // Modal controls
+        window.openFindCaregiverModal = () => { document.getElementById('findCaregiverModal').style.display = 'flex'; loadCaregivers(); };
+        window.closeFindCaregiverModal = () => { document.getElementById('findCaregiverModal').style.display = 'none'; };
+        window.openBecomeCaregiverModal = () => { document.getElementById('becomeCaregiverModal').style.display = 'flex'; };
+        window.closeBecomeCaregiverModal = () => { document.getElementById('becomeCaregiverModal').style.display = 'none'; };
+        window.closeChatModal = () => { document.getElementById('chatModal').style.display = 'none'; };
+        window.closeVoiceModal = () => { document.getElementById('voiceModal').style.display = 'none'; document.getElementById('recordBtn')?.classList.remove('hidden'); document.getElementById('stopBtn')?.classList.add('hidden'); document.getElementById('submitVoiceBtn')?.classList.add('hidden'); };
+        window.closeModalOnBackground = (event, modalId) => { if (event.target === document.getElementById(modalId)) document.getElementById(modalId).style.display = 'none'; };
+        window.logout = async () => { await signOut(auth); sessionStorage.clear(); window.location.href = '/index.html'; };
+        
+        loadProgress();
+        auth.onAuthStateChanged((user) => { 
+            if (!user && !window.location.pathname.includes('index.html')) {
+                window.location.href = '/index.html';
+            }
+        });
+    </script>
+</body>
+</html>

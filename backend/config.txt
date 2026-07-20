@@ -1,0 +1,9 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyAaFxUSOGUZfKUhOc-LWFL5_VPOktkrIjA",
+  authDomain: "parkinsondetectionapp-cb677.firebaseapp.com",
+  projectId: "parkinsondetectionapp-cb677",
+  storageBucket: "parkinsondetectionapp-cb677.firebasestorage.app",
+  messagingSenderId: "148898300215",
+  appId: "1:148898300215:web:44436a682cfb2690439ab2",
+  measurementId: "G-X56QXW4RD2"
+};

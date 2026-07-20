@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movement Analysis</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+
+    <style>
+        /* 🔥 LAYOUT FIX */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 70px); /* subtract navbar */
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .left-panel {
+            flex: 7;
+        }
+
+        .right-panel {
+            flex: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-box {
+            height: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .video-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .result-card {
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- 🔹 NAVBAR -->
+<div class="navbar">
+    <div class="logo">🖐️ Gesture Recognition</div>
+    <a href="http://127.0.0.1:8000/dashboard.html" class="btn btn-outline">
+        Go Dashboard
+    </a>
+</div>
+
+<!-- 🔹 MAIN CONTENT -->
+<div class="main-container">
+
+    <!-- 🔹 LEFT (70%) CAMERA -->
+    <div class="left-panel">
+        <div class="card video-box">
+            <img src="{{ url_for('video_feed') }}">
+        </div>
+    </div>
+
+    <!-- 🔹 RIGHT (30%) RESULT -->
+    <div class="right-panel">
+        <div class="card result-card">
+
+            <h3 style="opacity:0.7;">Detected Gesture</h3>
+
+            <h1 id="gesture-output" class="result" 
+                style="font-size:2.5rem; color:#60a5fa; margin-top:10px;">
+                Searching...
+            </h1>
+
+            <p class="status" style="margin-top:10px;">
+                Hold gesture steady
+            </p>
+
+            <br>
+
+            <button onclick="restartDetection()" class="btn btn-outline">
+                🔁 Restart
+            </button>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+function fetchGesture() {
+    fetch('/get_gesture')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('gesture-output').innerText = data.gesture;
+        });
+}
+
+setInterval(fetchGesture, 400);
+
+function restartDetection() {
+    document.getElementById("gesture-output").innerText = "Searching...";
+}
+
+</script>
+
+</body>
+</html>
